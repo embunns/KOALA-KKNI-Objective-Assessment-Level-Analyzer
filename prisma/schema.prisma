@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  documents UploadedDocument[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UploadedDocument {
+  id           String   @id @default(uuid())
+  fileName     String
+  originalName String
+  fileSize     Int
+  filePath     String
+  totalPages   Int?
+  uploadedBy   String
+  admin        Admin    @relation(fields: [uploadedBy], references: [id])
+  analysis     AnalysisHistory?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model AnalysisHistory {
+  id               String   @id @default(uuid())
+  documentId       String   @unique
+  document         UploadedDocument @relation(fields: [documentId], references: [id])
+  trainingTitle    String?
+  recommendedLevel Int?
+  confidence       Float?
+  dominantBloom    String?
+  candidateLevels  Json?
+  detectedKKO      Json?
+  learningOutcomes Json?
+  materials        Json?
+  matchedHistory   Json?
+  aspectScores     Json?
+  reasoning        String?
+  justification    String?
+  status           String   @default("Processing") // Processing | Completed | Failed | Needs Manual Review
+  aiUsed           Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model KKNILevel {
+  id             String   @id @default(uuid())
+  level          Int      @unique
+  description    String
+  knowledge      String
+  skill          String
+  responsibility String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model BloomCategory {
+  id        String   @id @default(uuid())
+  category  String   // Cognitive | Affective | Psychomotor
+  code      String   @unique // C1..C6, A1..A5, P1..P5
+  name      String
+  kkos      KKO[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model KKO {
+  id          String   @id @default(uuid())
+  word        String   @unique
+  bloomId     String
+  bloom       BloomCategory @relation(fields: [bloomId], references: [id])
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model TrainingHistory {
+  id             String   @id @default(uuid())
+  trainingName   String
+  provider       String?
+  kkniLevel      Int
+  unitCompetency String   @db.Text
+  reference      String?
+  pdfPath        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Settings {
+  id              String   @id @default(uuid())
+  websiteName     String   @default("KKNI Competency Analyzer")
+  primaryColor    String   @default("#2563EB")
+  analysisVersion String   @default("1.0")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

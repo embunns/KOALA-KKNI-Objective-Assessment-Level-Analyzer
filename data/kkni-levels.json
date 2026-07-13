@@ -1,0 +1,65 @@
+[
+  {
+    "level": 1,
+    "description": "Melaksanakan tugas sederhana, bersifat rutin, menggunakan prosedur yang sudah ditentukan, di bawah bimbingan langsung, bertanggung jawab pada pekerjaan sendiri.",
+    "knowledge": "Memiliki pengetahuan faktual.",
+    "skill": "Melaksanakan tugas sederhana yang bersifat rutin dengan prosedur yang sudah ditentukan, di bawah bimbingan langsung.",
+    "responsibility": "Bertanggung jawab pada pekerjaan sendiri."
+  },
+  {
+    "level": 2,
+    "description": "Melaksanakan satu tugas spesifik menggunakan alat dan prosedur standar, menunjukkan mutu kerja yang terukur, dapat membimbing orang lain dalam lingkup terbatas.",
+    "knowledge": "Pengetahuan operasional dasar.",
+    "skill": "Melaksanakan satu tugas spesifik menggunakan alat dan prosedur standar, menunjukkan mutu kerja yang terukur.",
+    "responsibility": "Dapat membimbing orang lain dalam lingkup terbatas."
+  },
+  {
+    "level": 3,
+    "description": "Melaksanakan beberapa tugas spesifik, memilih prosedur kerja dari sejumlah pilihan yang tersedia, menyelesaikan masalah umum dengan bekerja sama.",
+    "knowledge": "Pengetahuan operasional yang lengkap serta prinsip dan konsep umum terkait bidang kerja.",
+    "skill": "Melaksanakan beberapa tugas spesifik, memilih prosedur kerja, menyelesaikan masalah umum.",
+    "responsibility": "Bertanggung jawab terhadap mutu hasil kerja sendiri dan dapat diberi tanggung jawab membimbing orang lain."
+  },
+  {
+    "level": 4,
+    "description": "Menyelesaikan pekerjaan berlingkup luas, melakukan analisis terbatas, memilih metode yang sesuai, menyusun laporan, dan memiliki inisiatif.",
+    "knowledge": "Menguasai konsep teoritis bidang pengetahuan tertentu secara umum.",
+    "skill": "Menyelesaikan pekerjaan berlingkup luas, melakukan analisis terbatas, memilih metode yang sesuai dari beberapa pilihan yang baku, menyusun laporan.",
+    "responsibility": "Bertanggung jawab pada pekerjaan sendiri dan dapat diberi tanggung jawab atas pencapaian hasil kerja organisasi, memiliki inisiatif."
+  },
+  {
+    "level": 5,
+    "description": "Menyelesaikan pekerjaan kompleks, memilih metode baku maupun non-baku, menganalisis data, memformulasikan solusi, dan mengelola kelompok kerja.",
+    "knowledge": "Menguasai konsep teoritis bidang pengetahuan tertentu secara mendalam.",
+    "skill": "Menyelesaikan pekerjaan berlingkup luas dan kompleks, memilih metode kerja yang tepat (baku dan non-baku), menganalisis data, memformulasikan solusi.",
+    "responsibility": "Bertanggung jawab pada pekerjaan sendiri dan dapat diberi tanggung jawab atas pencapaian hasil kerja organisasi dengan mengelola kelompok kerja."
+  },
+  {
+    "level": 6,
+    "description": "Mengaplikasikan bidang keahliannya dan memanfaatkan IPTEKS pada bidangnya dalam penyelesaian masalah serta mampu beradaptasi terhadap situasi yang dihadapi, mengambil keputusan strategis berdasarkan analisis informasi dan data.",
+    "knowledge": "Menguasai konsep teoritis bidang pengetahuan tertentu secara umum dan konsep teoritis bagian khusus dalam bidang pengetahuan tersebut secara mendalam.",
+    "skill": "Mengaplikasikan bidang keahliannya, memanfaatkan IPTEK, mengambil keputusan, memberikan alternatif solusi.",
+    "responsibility": "Bertanggung jawab pada pekerjaan sendiri dan dapat diberi tanggung jawab atas pencapaian hasil kerja organisasi."
+  },
+  {
+    "level": 7,
+    "description": "Mampu merencanakan dan mengelola sumber daya, mengevaluasi organisasi secara komprehensif, menyusun langkah strategis, serta melakukan riset dan mengambil keputusan strategis dengan akuntabilitas penuh.",
+    "knowledge": "Menguasai teori aplikasi bidang pengetahuan dan keterampilan tertentu secara mendalam, mampu memformulasi penyelesaian masalah prosedural.",
+    "skill": "Mengelola sumber daya, mengevaluasi organisasi, menyusun langkah strategis, melakukan riset.",
+    "responsibility": "Bertanggung jawab pada bidang keahliannya dalam mengambil keputusan strategis dengan akuntabilitas dan tanggung jawab penuh."
+  },
+  {
+    "level": 8,
+    "description": "Mengembangkan pengetahuan, teknologi, dan/atau seni di dalam bidang keilmuannya melalui riset multidisiplin, hingga menghasilkan karya inovatif dan teruji, mendapat pengakuan nasional maupun internasional.",
+    "knowledge": "Menguasai teori dan teori aplikasi bidang pengetahuan tertentu.",
+    "skill": "Mengembangkan ilmu, menghasilkan inovasi, penelitian multidisiplin, mengelola riset.",
+    "responsibility": "Mampu mengelola riset dan pengembangan yang bermanfaat bagi masyarakat, mendapat pengakuan nasional maupun internasional."
+  },
+  {
+    "level": 9,
+    "description": "Mampu mengembangkan pengetahuan, teknologi, dan/atau seni baru di dalam bidang keilmuannya atau praktik profesionalnya melalui riset, hingga menghasilkan karya kreatif, original, dan teruji secara transdisipliner.",
+    "knowledge": "Menguasai filosofi keilmuan bidang pengetahuan dan keterampilan tertentu.",
+    "skill": "Mengembangkan ilmu baru, menghasilkan karya original, memimpin riset, pendekatan transdisipliner.",
+    "responsibility": "Mampu memimpin riset dan pengembangan yang bermanfaat bagi masyarakat, mendapat pengakuan internasional."
+  }
+]

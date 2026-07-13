@@ -1,0 +1,23 @@
+[
+  { "word": "mengetahui", "bloomCode": "C1", "description": "Menyebutkan kembali fakta atau informasi dasar." },
+  { "word": "mengingat", "bloomCode": "C1", "description": "Mengingat kembali informasi yang telah dipelajari." },
+  { "word": "menyebutkan", "bloomCode": "C1", "description": "Menyebutkan fakta, istilah, atau konsep dasar." },
+  { "word": "memahami", "bloomCode": "C2", "description": "Menjelaskan makna suatu konsep dengan kata sendiri." },
+  { "word": "menjelaskan", "bloomCode": "C2", "description": "Menguraikan suatu konsep atau proses secara rinci." },
+  { "word": "mendeskripsikan", "bloomCode": "C2", "description": "Menggambarkan karakteristik suatu objek atau konsep." },
+  { "word": "mengaplikasikan", "bloomCode": "C3", "description": "Menerapkan konsep pada situasi konkret." },
+  { "word": "menerapkan", "bloomCode": "C3", "description": "Menggunakan prosedur/konsep dalam situasi baru." },
+  { "word": "menggunakan", "bloomCode": "C3", "description": "Memanfaatkan metode atau alat untuk menyelesaikan tugas." },
+  { "word": "melaksanakan", "bloomCode": "C3", "description": "Menjalankan suatu prosedur atau tugas operasional." },
+  { "word": "mengimplementasikan", "bloomCode": "C3", "description": "Menjalankan rencana atau desain menjadi tindakan nyata." },
+  { "word": "mengidentifikasi", "bloomCode": "C4", "description": "Menemukan dan menguraikan bagian/unsur dari suatu masalah." },
+  { "word": "menganalisis", "bloomCode": "C4", "description": "Menguraikan informasi menjadi bagian-bagian untuk memahami keterkaitannya." },
+  { "word": "membandingkan", "bloomCode": "C4", "description": "Menilai persamaan dan perbedaan antar unsur." },
+  { "word": "mengevaluasi", "bloomCode": "C5", "description": "Menilai berdasarkan kriteria tertentu untuk mengambil keputusan." },
+  { "word": "mengelola", "bloomCode": "C5", "description": "Mengatur dan mengendalikan sumber daya atau kelompok kerja." },
+  { "word": "menilai", "bloomCode": "C5", "description": "Memberikan penilaian berdasarkan bukti dan kriteria." },
+  { "word": "merancang", "bloomCode": "C6", "description": "Menyusun rencana atau desain baru." },
+  { "word": "mengembangkan", "bloomCode": "C6", "description": "Menciptakan atau menyempurnakan sesuatu yang baru." },
+  { "word": "menyusun", "bloomCode": "C6", "description": "Membentuk sesuatu (strategi, laporan, rencana) dari berbagai unsur." },
+  { "word": "menciptakan", "bloomCode": "C6", "description": "Menghasilkan karya atau solusi yang benar-benar baru." }
+]

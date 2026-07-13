@@ -1,0 +1,18 @@
+[
+  { "category": "Cognitive", "code": "C1", "name": "Remember (Mengingat)" },
+  { "category": "Cognitive", "code": "C2", "name": "Understand (Memahami)" },
+  { "category": "Cognitive", "code": "C3", "name": "Apply (Menerapkan)" },
+  { "category": "Cognitive", "code": "C4", "name": "Analyze (Menganalisis)" },
+  { "category": "Cognitive", "code": "C5", "name": "Evaluate (Mengevaluasi)" },
+  { "category": "Cognitive", "code": "C6", "name": "Create (Menciptakan)" },
+  { "category": "Affective", "code": "A1", "name": "Receiving" },
+  { "category": "Affective", "code": "A2", "name": "Responding" },
+  { "category": "Affective", "code": "A3", "name": "Valuing" },
+  { "category": "Affective", "code": "A4", "name": "Organizing" },
+  { "category": "Affective", "code": "A5", "name": "Characterizing" },
+  { "category": "Psychomotor", "code": "P1", "name": "Imitation" },
+  { "category": "Psychomotor", "code": "P2", "name": "Manipulation" },
+  { "category": "Psychomotor", "code": "P3", "name": "Precision" },
+  { "category": "Psychomotor", "code": "P4", "name": "Articulation" },
+  { "category": "Psychomotor", "code": "P5", "name": "Naturalization" }
+]
