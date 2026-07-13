@@ -5,11 +5,15 @@ import { Topbar } from "@/components/layout/Topbar";
 import { Card } from "@/components/ui/Card";
 import { Table } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 
 export default function HistoryPage() {
   const [analyses, setAnalyses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [confirmTarget, setConfirmTarget] = useState<{ id: string; name: string } | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   async function loadData() {
     setLoading(true);
@@ -23,14 +27,17 @@ export default function HistoryPage() {
     loadData();
   }, []);
 
-  async function handleDelete(id: string, name: string) {
-    if (!confirm(`Hapus hasil analisis "${name}"? Tindakan ini tidak bisa dibatalkan.`)) return;
-    const res = await fetch(`/api/history/${id}`, { method: "DELETE" });
+  async function confirmDelete() {
+    if (!confirmTarget) return;
+    setDeleting(true);
+    const res = await fetch(`/api/history/${confirmTarget.id}`, { method: "DELETE" });
     if (res.ok) {
-      setAnalyses((prev) => prev.filter((a) => a.id !== id));
+      setAnalyses((prev) => prev.filter((a) => a.id !== confirmTarget.id));
+      setConfirmTarget(null);
     } else {
-      alert("Gagal menghapus data.");
+      setNotice("Gagal menghapus data. Silakan coba lagi.");
     }
+    setDeleting(false);
   }
 
   const filtered = analyses.filter((a) =>
@@ -71,7 +78,7 @@ export default function HistoryPage() {
                     <td className="py-2 px-3 space-x-3 whitespace-nowrap">
                       <Link href={`/history/${a.id}`} className="text-primary text-xs" title="Lihat">Lihat</Link>
                       <button
-                        onClick={() => handleDelete(a.id, a.trainingTitle || a.document?.originalName)}
+                        onClick={() => setConfirmTarget({ id: a.id, name: a.trainingTitle || a.document?.originalName })}
                         className="text-danger text-xs"
                         title="Hapus"
                       >
@@ -85,6 +92,34 @@ export default function HistoryPage() {
           )}
         </Card>
       </div>
+
+      {confirmTarget && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
+            <p className="font-medium mb-2">Hapus hasil analisis?</p>
+            <p className="text-sm text-gray-600 mb-5">
+              Hasil analisis <span className="font-medium">&quot;{confirmTarget.name}&quot;</span> akan dihapus permanen dan tidak bisa dibatalkan.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => setConfirmTarget(null)} disabled={deleting}>Batal</Button>
+              <Button variant="danger" onClick={confirmDelete} disabled={deleting}>
+                {deleting ? "Menghapus..." : "Ya, Hapus"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {notice && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
+            <p className="text-sm text-gray-700 mb-5">{notice}</p>
+            <div className="flex justify-end">
+              <Button onClick={() => setNotice(null)}>Oke</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

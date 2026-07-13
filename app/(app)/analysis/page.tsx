@@ -246,7 +246,7 @@ export default function AnalysisPage() {
 
             <div className="flex gap-3">
               <Button variant="secondary" onClick={handleExportPdf}>Export PDF</Button>
-              <Button variant="secondary" onClick={handleExportJson}>Export JSON</Button>
+              
             </div>
           </>
         )}
