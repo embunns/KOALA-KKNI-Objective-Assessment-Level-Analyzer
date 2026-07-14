@@ -1,16 +1,4 @@
-/**
- * analysisOrchestrator
- * ---------------------------------------------------------------------------
- * Menjalankan seluruh AI Workflow secara berurutan:
- * Extract -> Preprocess -> Section Detection -> KKO Detection ->
- * Bloom Classification -> Similarity (Histori) -> KKNI Scoring ->
- * Confidence -> Justification -> Output.
- *
- * Ini adalah satu-satunya "pintu masuk" yang dipanggil oleh API route
- * /api/analyze, sehingga API route tetap tipis (thin controller).
- */
-
-import { extractTextFromPdf } from "./pdfExtractorService";
+import { extractTextFromPdf, extractTextFromImage } from "./pdfExtractorService";
 import { preprocessText } from "./preprocessingService";
 import { detectSections } from "./sectionDetectionService";
 import { detectKko, KkoWithBloom } from "./kkoDetectionService";
@@ -46,9 +34,13 @@ export interface AnalysisOutput {
 
 const MIN_TEXT_LENGTH_FOR_FULL_CONFIDENCE = 400;
 
-export async function runAnalysis(pdfBuffer: Buffer, deps: AnalysisDependencies): Promise<AnalysisOutput> {
+export async function runAnalysis(
+  fileBuffer: Buffer,
+  deps: AnalysisDependencies,
+  fileType: "pdf" | "image" = "pdf"
+): Promise<AnalysisOutput> {
   // 1. Extract
-  const extraction = await extractTextFromPdf(pdfBuffer);
+  const extraction = fileType === "image" ? await extractTextFromImage(fileBuffer) : await extractTextFromPdf(fileBuffer);
 
   if (!extraction.rawText || extraction.rawText.trim().length === 0) {
     throw new Error("Dokumen tidak memiliki teks yang dapat dianalisis.");

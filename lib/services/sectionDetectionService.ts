@@ -1,11 +1,3 @@
-/**
- * sectionDetectionService
- * ---------------------------------------------------------------------------
- * Mencoba menemukan bagian-bagian penting dari dokumen pelatihan berdasarkan
- * heading yang umum dipakai. Jika suatu bagian tidak ditemukan, hasilnya NULL
- * -- sesuai aturan bisnis: "jangan membuat informasi sendiri".
- */
-
 export interface DocumentSections {
   title: string | null;
   objectives: string | null; // Tujuan Pelatihan
@@ -17,16 +9,18 @@ export interface DocumentSections {
   duration: string | null;
 }
 
-// Heading yang dicari, beserta variasi penulisannya (case-insensitive).
+// Heading yang dicari, beserta variasi penulisannya dalam Bahasa Indonesia maupun
+// Bahasa Inggris (case-insensitive), supaya dokumen pelatihan berbahasa Inggris
+// juga bisa dibaca sistem tanpa perlu konfigurasi tambahan.
 const HEADING_PATTERNS: Record<keyof DocumentSections, RegExp> = {
-  title: /^(judul( pelatihan)?|title)\s*[:\-]?\s*/i,
-  objectives: /^(tujuan( pelatihan)?|objectives?)\s*[:\-]?\s*/i,
-  learningOutcome: /^(learning outcome|capaian pembelajaran|hasil belajar)\s*[:\-]?\s*/i,
-  materials: /^(materi|silabus|modul|materials?)\s*[:\-]?\s*/i,
-  competencies: /^(kompetensi|competenc(y|ies))\s*[:\-]?\s*/i,
-  method: /^(metode|method)\s*[:\-]?\s*/i,
-  assessment: /^(assessment|evaluasi|penilaian)\s*[:\-]?\s*/i,
-  duration: /^(durasi|duration)\s*[:\-]?\s*/i,
+  title: /^(judul( pelatihan)?|title|course title)\s*[:\-]?\s*/i,
+  objectives: /^(tujuan( pelatihan)?|objectives?|goals?|purpose)\s*[:\-]?\s*/i,
+  learningOutcome: /^(learning outcomes?|capaian pembelajaran|hasil belajar|learning objectives?)\s*[:\-]?\s*/i,
+  materials: /^(materi|silabus|modul|materials?|syllabus|curriculum|content|topics?)\s*[:\-]?\s*/i,
+  competencies: /^(kompetensi|competenc(y|ies)|skills?)\s*[:\-]?\s*/i,
+  method: /^(metode|method(ology)?|training method)\s*[:\-]?\s*/i,
+  assessment: /^(assessment|evaluasi|penilaian|evaluation)\s*[:\-]?\s*/i,
+  duration: /^(durasi|duration|length|schedule)\s*[:\-]?\s*/i,
 };
 
 export function detectSections(cleanedText: string): DocumentSections {

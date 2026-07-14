@@ -23,7 +23,7 @@ export default function AnalysisPage() {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { "application/pdf": [".pdf"] },
+    accept: { "application/pdf": [".pdf"], "image/png": [".png"], "image/jpeg": [".jpg", ".jpeg"] },
     maxSize: 20 * 1024 * 1024,
     multiple: false,
   });
@@ -151,9 +151,9 @@ export default function AnalysisPage() {
           >
             <input {...getInputProps()} aria-label="Upload PDF" />
             <p className="text-gray-600">
-              {file ? file.name : "Drag & drop file PDF di sini, atau klik untuk memilih file"}
+              {file ? file.name : "Drag & drop file PDF/PNG/JPG di sini, atau klik untuk memilih file"}
             </p>
-            <p className="text-xs text-gray-400 mt-1">Maks 20MB, hanya .pdf</p>
+            <p className="text-xs text-gray-400 mt-1">Maks 20MB, format PDF, PNG, atau JPG</p>
           </div>
           <div className="mt-4 flex justify-end">
             <Button onClick={handleAnalyze} disabled={!file || (step !== "idle" && step !== "done" && step !== "error")}>
@@ -246,7 +246,7 @@ export default function AnalysisPage() {
 
             <div className="flex gap-3">
               <Button variant="secondary" onClick={handleExportPdf}>Export PDF</Button>
-              
+              <Button variant="secondary" onClick={handleExportJson}>Export JSON</Button>
             </div>
           </>
         )}

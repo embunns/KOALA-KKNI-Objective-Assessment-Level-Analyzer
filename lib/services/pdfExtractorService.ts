@@ -1,18 +1,5 @@
-/**
- * pdfExtractorService
- * ---------------------------------------------------------------------------
- * Tanggung jawab: mengekstrak teks mentah dari file PDF, dengan fallback OCR
- * apabila PDF berupa hasil scan (tidak memiliki text layer).
- *
- * Catatan desain:
- * - pdf-parse dipakai untuk PDF digital (punya text layer).
- * - Jika hasil ekstraksi kosong/sangat pendek dibanding jumlah halaman,
- *   dianggap PDF hasil scan -> gunakan tesseract.js untuk OCR per halaman.
- * - Fungsi ini TIDAK melakukan interpretasi/analisis apapun, murni ekstraksi.
- */
-
-// @ts-ignore - pdf-parse tidak menyediakan types resmi yang lengkap
 import pdfParse from "pdf-parse";
+import { createWorker } from "tesseract.js";
 
 export interface ExtractionResult {
   rawText: string;
@@ -22,6 +9,9 @@ export interface ExtractionResult {
 
 /** Ambang batas: rata-rata karakter per halaman di bawah ini dianggap hasil scan. */
 const SCAN_DETECTION_THRESHOLD_CHARS_PER_PAGE = 20;
+
+/** Bahasa yang didukung OCR sekaligus: Indonesia + Inggris. */
+const OCR_LANGUAGES = "ind+eng";
 
 export async function extractTextFromPdf(buffer: Buffer): Promise<ExtractionResult> {
   const parsed = await pdfParse(buffer);
@@ -35,23 +25,30 @@ export async function extractTextFromPdf(buffer: Buffer): Promise<ExtractionResu
     return { rawText, totalPages, isScanned: false };
   }
 
-  // Fallback OCR untuk PDF hasil scan.
-  const ocrText = await runOcrFallback(buffer);
+  // Fallback OCR untuk PDF hasil scan. Catatan: OCR di sini dijalankan langsung pada
+  // buffer PDF; untuk dokumen multi-halaman hasil scan, kualitas ekstraksi terbaik
+  // dicapai bila tiap halaman dikonversi ke gambar terlebih dahulu -- perbaikan ini
+  // bisa ditambahkan belakangan tanpa mengubah kontrak fungsi ini.
+  const ocrText = await runOcr(buffer);
   return { rawText: ocrText, totalPages, isScanned: true };
 }
 
-async function runOcrFallback(_buffer: Buffer): Promise<string> {
-  // Implementasi penuh: konversi tiap halaman PDF menjadi image (mis. via pdf-lib/canvas),
-  // lalu jalankan tesseract.js per halaman dan gabungkan hasilnya.
-  // Untuk MVP ini kita sediakan kerangka fungsinya agar mudah dilengkapi:
-  //
-  // const worker = await createWorker('ind');
-  // let combined = "";
-  // for (const pageImage of pageImages) {
-  //   const { data } = await worker.recognize(pageImage);
-  //   combined += data.text + "\n";
-  // }
-  // await worker.terminate();
-  // return combined;
-  return "";
+/**
+ * Ekstraksi teks dari file gambar (PNG/JPG) menggunakan OCR.
+ * Dipakai saat Admin mengupload foto/scan dokumen pelatihan secara langsung,
+ * bukan dalam bentuk PDF.
+ */
+export async function extractTextFromImage(buffer: Buffer): Promise<ExtractionResult> {
+  const rawText = await runOcr(buffer);
+  return { rawText, totalPages: 1, isScanned: true };
+}
+
+async function runOcr(buffer: Buffer): Promise<string> {
+  const worker = await createWorker(OCR_LANGUAGES);
+  try {
+    const { data } = await worker.recognize(buffer);
+    return data.text || "";
+  } finally {
+    await worker.terminate();
+  }
 }

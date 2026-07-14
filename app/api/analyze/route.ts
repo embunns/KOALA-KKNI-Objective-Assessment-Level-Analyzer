@@ -15,12 +15,15 @@ export async function POST(req: NextRequest) {
 
   const formData = await req.formData();
   const file = formData.get("file") as File | null;
-  if (!file) return NextResponse.json({ error: "PDF wajib diupload." }, { status: 400 });
-  if (file.type !== "application/pdf") {
-    return NextResponse.json({ error: "Hanya file PDF yang diperbolehkan." }, { status: 400 });
+  if (!file) return NextResponse.json({ error: "Dokumen wajib diupload." }, { status: 400 });
+
+  const ALLOWED_TYPES = ["application/pdf", "image/png", "image/jpeg"];
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    return NextResponse.json({ error: "Hanya file PDF, PNG, atau JPG yang diperbolehkan." }, { status: 400 });
   }
+  const fileType: "pdf" | "image" = file.type === "application/pdf" ? "pdf" : "image";
   if (file.size > MAX_PDF_SIZE_BYTES) {
-    return NextResponse.json({ error: "Upload gagal. Ukuran PDF maksimal 20 MB." }, { status: 400 });
+    return NextResponse.json({ error: "Upload gagal. Ukuran file maksimal 20 MB." }, { status: 400 });
   }
 
   const uploadDir = path.join(process.cwd(), "public", "uploads");
@@ -68,7 +71,7 @@ export async function POST(req: NextRequest) {
         kkniLevel: t.kkniLevel,
         unitCompetency: t.unitCompetency,
       })),
-    });
+    }, fileType);
 
     const updated = await prisma.analysisHistory.update({
       where: { id: analysisPlaceholder.id },
