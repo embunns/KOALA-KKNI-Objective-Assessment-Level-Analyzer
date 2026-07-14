@@ -49,6 +49,7 @@ model AnalysisHistory {
   justification    String?
   status           String   @default("Processing") // Processing | Completed | Failed | Needs Manual Review
   aiUsed           Boolean  @default(false)
+  aiAgreement      String?  // "agree" | "close" | "disagree" | null
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }

@@ -6,7 +6,7 @@ import { classifyDominantBloom } from "./bloomClassificationService";
 import { findSimilarHistory, TrainingHistoryRecord } from "./similarityService";
 import { scoreDocumentAgainstKkni, KkniLevelRef, AspectScores } from "./kkniScoringService";
 import { generateJustification } from "./justificationService";
-import { determineLevelWithAi } from "./aiLevelDeterminationService";
+import { assistWithGemini } from "./geminiAssistService";
 
 export interface AnalysisDependencies {
   kkoList: KkoWithBloom[];
@@ -30,9 +30,12 @@ export interface AnalysisOutput {
   justification: string;
   status: "Completed" | "Needs Manual Review";
   aiUsed: boolean;
+  aiAgreement: "agree" | "close" | "disagree" | null;
 }
 
 const MIN_TEXT_LENGTH_FOR_FULL_CONFIDENCE = 400;
+const AGREE_CONFIDENCE_BOOST = 8;
+const DISAGREE_CONFIDENCE_CAP = 55;
 
 export async function runAnalysis(
   fileBuffer: Buffer,
@@ -66,26 +69,39 @@ export async function runAnalysis(
     deps.trainingHistory
   );
 
-  // 7. Penentuan Level KKNI
-  // Coba dulu pakai AI (OpenAI) yang membaca keseluruhan konteks dokumen -- lebih toleran
-  // terhadap dokumen yang tidak terstruktur rapi. Jika API key tidak ada atau AI gagal
-  // merespons dengan valid, fallback ke rule-based scoring (selalu konsisten & bisa diaudit).
-  const aiResult = await determineLevelWithAi(cleanedText, sections, detectedKko, deps.kkniLevels);
-
+  // 7. KKNI Scoring -- SELALU rule-based, ini yang menentukan level akhir.
   const scoring = scoreDocumentAgainstKkni(sections, detectedKko, deps.kkniLevels, historyMatches);
+  const recommendedLevel = scoring.recommendedLevel;
+  const candidateLevels = scoring.candidateLevels;
 
-  const recommendedLevel = aiResult?.recommendedLevel ?? scoring.recommendedLevel;
-  const candidateLevels = aiResult?.candidateLevels ?? scoring.candidateLevels;
-  const aiUsed = aiResult !== null;
-
-  // aspectScores tetap dihitung dari rule-based (untuk level yang benar-benar direkomendasikan)
-  // agar Admin selalu punya breakdown skor per aspek untuk transparansi/explainability,
-  // baik ketika levelnya berasal dari AI maupun rule-based.
   const winningKkniForAspects = deps.kkniLevels.find((k) => k.level === recommendedLevel) || deps.kkniLevels[0];
   const aspectScores = scoreDocumentAgainstKkni(sections, detectedKko, [winningKkniForAspects], historyMatches).aspectScores;
 
-  // 8. Fallback rule: jika dokumen hanya berisi judul + deskripsi singkat -> confidence maks 60%.
-  let finalConfidence = aiResult?.confidence ?? scoring.confidence;
+  // 8. Bantuan AI (opsional): ekstraksi judul + penilaian pembanding independen.
+  // Kalau GEMINI_API_KEY tidak diisi atau panggilan gagal, geminiResult bernilai
+  // null dan seluruh proses lanjut normal memakai rule-based saja.
+  const geminiResult = await assistWithGemini(cleanedText, sections, detectedKko, deps.kkniLevels);
+
+  let finalConfidence = scoring.confidence;
+  let aiUsed = false;
+  let aiAgreement: AnalysisOutput["aiAgreement"] = null;
+
+  if (geminiResult && geminiResult.assessedLevel !== null) {
+    aiUsed = true;
+    const diff = Math.abs(geminiResult.assessedLevel - recommendedLevel);
+    if (diff === 0) {
+      aiAgreement = "agree";
+      finalConfidence = Math.min(100, finalConfidence + AGREE_CONFIDENCE_BOOST);
+    } else if (diff === 1) {
+      aiAgreement = "close";
+      // Selisih satu level dianggap masih wajar -- confidence tidak diubah signifikan.
+    } else {
+      aiAgreement = "disagree";
+      finalConfidence = Math.min(finalConfidence, DISAGREE_CONFIDENCE_CAP);
+    }
+  }
+
+  // 9. Fallback rule: jika dokumen hanya berisi judul + deskripsi singkat -> confidence maks 60%.
   const isSparseDocument = cleanedText.length < MIN_TEXT_LENGTH_FOR_FULL_CONFIDENCE;
   if (isSparseDocument) {
     finalConfidence = Math.min(finalConfidence, 60);
@@ -93,31 +109,40 @@ export async function runAnalysis(
 
   const status: AnalysisOutput["status"] = finalConfidence < 70 ? "Needs Manual Review" : "Completed";
 
-  // 9. Justification: pakai hasil dari AI langsung jika tersedia (sudah termasuk reasoning),
-  // kalau tidak, susun dari template rule-based seperti sebelumnya.
-  let justification: string;
-  let reasoning: string;
+  // 10. Justification: selalu disusun dari fakta rule-based (template atau LLM
+  // penyusun kalimat di justificationService.ts), lalu ditambah catatan hasil
+  // pembanding AI apabila tersedia, supaya Admin tahu ada/tidaknya "second opinion".
+  const winningLevel = deps.kkniLevels.find((k) => k.level === recommendedLevel);
+  let justification = await generateJustification({
+    recommendedLevel,
+    confidence: finalConfidence,
+    candidateLevels,
+    dominantBloom,
+    detectedKko,
+    historyMatches,
+    levelDescription: winningLevel?.description || "Tidak ditemukan",
+  });
 
-  if (aiResult) {
-    justification = aiResult.justification || "";
-    reasoning = aiResult.reasoning || "";
-  } else {
-    const winningLevel = deps.kkniLevels.find((k) => k.level === recommendedLevel);
-    justification = await generateJustification({
-      recommendedLevel,
-      confidence: finalConfidence,
-      candidateLevels,
-      dominantBloom,
-      detectedKko,
-      historyMatches,
-      levelDescription: winningLevel?.description || "Tidak ditemukan",
-    });
-    reasoning = buildReasoningTrace(sections, dominantBloom, recommendedLevel, historyMatches);
+  if (geminiResult && geminiResult.assessedLevel !== null) {
+    const agreementText =
+      aiAgreement === "agree"
+        ? "sejalan dengan"
+        : aiAgreement === "close"
+        ? "mendekati (selisih satu level dari)"
+        : "berbeda cukup jauh dari";
+    justification += ` Sebagai pembanding, penilaian independen oleh AI menghasilkan Level ${geminiResult.assessedLevel}, yang ${agreementText} hasil rule-based. Catatan AI: ${geminiResult.reasoning}`;
   }
 
+  const reasoning = buildReasoningTrace(sections, dominantBloom, recommendedLevel, historyMatches, aiAgreement);
+
+  // Judul training: utamakan hasil ekstraksi AI (lebih toleran terhadap format
+  // dokumen yang tidak baku), fallback ke hasil regex rule-based jika AI tidak
+  // tersedia. Judul ini TIDAK pernah dipakai sebagai input pada scoring di atas.
+  const trainingTitle = geminiResult?.title || sections.title;
+
   return {
-    trainingTitle: sections.title,
-    summary: sections.objectives || sections.title || "Tidak ditemukan",
+    trainingTitle,
+    summary: sections.objectives || trainingTitle || "Tidak ditemukan",
     learningOutcomes: sections.learningOutcome ? [sections.learningOutcome] : [],
     materials: sections.materials ? [sections.materials] : [],
     detectedKKO: detectedKko,
@@ -136,6 +161,7 @@ export async function runAnalysis(
     justification,
     status,
     aiUsed,
+    aiAgreement,
   };
 }
 
@@ -143,7 +169,8 @@ function buildReasoningTrace(
   sections: ReturnType<typeof detectSections>,
   dominantBloom: string | null,
   recommendedLevel: number,
-  historyMatches: ReturnType<typeof findSimilarHistory>
+  historyMatches: ReturnType<typeof findSimilarHistory>,
+  aiAgreement: AnalysisOutput["aiAgreement"]
 ): string {
   const steps: string[] = [];
   if (sections.learningOutcome) {
@@ -158,6 +185,10 @@ function buildReasoningTrace(
     steps.push(`Ditemukan histori dengan kemiripan tertinggi ${historyMatches[0].similarity}% pada Level ${historyMatches[0].kkniLevel}.`);
   } else {
     steps.push("Tidak ditemukan histori yang cukup mirip untuk dijadikan referensi tambahan.");
+  }
+  if (aiAgreement) {
+    const label = aiAgreement === "agree" ? "sepakat dengan" : aiAgreement === "close" ? "mendekati" : "berbeda dari";
+    steps.push(`Penilaian pembanding oleh AI ${label} hasil rule-based.`);
   }
   steps.push(`Berdasarkan kombinasi faktor di atas, Level ${recommendedLevel} dipilih sebagai rekomendasi akhir.`);
   return steps.join(" ");

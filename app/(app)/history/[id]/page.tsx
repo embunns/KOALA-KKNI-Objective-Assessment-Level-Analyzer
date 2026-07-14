@@ -45,6 +45,13 @@ export default function HistoryDetailPage() {
 
   if (!data) return <div><Topbar title="Detail Analisis" /><p className="p-6 text-sm text-gray-500">Memuat...</p></div>;
 
+  function agreementLabel(agreement: string | null | undefined) {
+    if (agreement === "agree") return "Divalidasi AI (sejalan)";
+    if (agreement === "close") return "Divalidasi AI (mendekati)";
+    if (agreement === "disagree") return "Divalidasi AI (berbeda, perlu ditinjau)";
+    return "Rule-based";
+  }
+
   function handleExportPdf() {
     const doc = new jsPDF();
     const margin = 14;
@@ -68,7 +75,7 @@ export default function HistoryDetailPage() {
     line("Confidence", `${data.confidence ?? "-"}%`);
     line("Status", data.status || "-");
     line("Bloom Dominan", data.dominantBloom || "Tidak ditemukan");
-    line("Sumber Penentuan", data.aiUsed ? "Ditentukan oleh AI" : "Rule-based");
+    line("Validasi AI", data.aiUsed ? agreementLabel(data.aiAgreement) : "Tidak diaktifkan");
     y += 4;
     line("", "Justifikasi:", true);
     line("", data.justification || "Tidak ditemukan");
@@ -110,7 +117,7 @@ export default function HistoryDetailPage() {
             <>
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <p className="text-3xl font-semibold text-primary">Level {data.recommendedLevel ?? "-"}</p>
-                <Badge>{data.aiUsed ? "Ditentukan oleh AI" : "Rule-based"}</Badge>
+                <Badge>{data.aiUsed ? agreementLabel(data.aiAgreement) : "Rule-based (AI tidak aktif)"}</Badge>
                 <Badge tone={data.status === "Completed" ? "success" : data.status === "Failed" ? "danger" : "warning"}>
                   {data.status}
                 </Badge>

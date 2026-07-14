@@ -34,7 +34,7 @@ export function Sidebar() {
 
   return (
     <aside className="w-[280px] shrink-0 bg-white border-r border-border h-screen sticky top-0 flex flex-col">
-      <div className="px-5 py-6 border-b border-border flex items-center">
+      <div className="px-5 py-6 border-b border-border flex items-center justify-center">
         <img src="/branding/logo.png" alt="Logo Perusahaan" className="h-20 w-auto" />
       </div>
       <nav className="flex-1 py-4 px-3 space-y-1">
