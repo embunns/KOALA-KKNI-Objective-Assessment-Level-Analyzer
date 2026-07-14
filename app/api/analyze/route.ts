@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
         materials: result.materials,
         matchedHistory: result.matchedHistory,
         aspectScores: result.aspectScores as any,
-        aiAgreement: result.aiAgreement,
+        documentSource: result.documentSource,
         reasoning: result.reasoning,
         justification: result.justification,
         status: result.status,

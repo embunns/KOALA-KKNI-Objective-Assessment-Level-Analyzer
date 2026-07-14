@@ -32,10 +32,14 @@ export default function HistoryDetailPage() {
 
   async function handleSave() {
     setSaving(true);
+    // Begitu Admin menyimpan koreksi manual, status otomatis dianggap "Completed"
+    // -- artinya dokumen ini sudah ditinjau manusia, jadi peringatan "Needs Manual
+    // Review" tidak relevan lagi ditampilkan.
+    const payload = { ...form, status: "Completed" };
     const res = await fetch(`/api/history/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(payload),
     });
     const updated = await res.json();
     setData(updated);
@@ -44,13 +48,6 @@ export default function HistoryDetailPage() {
   }
 
   if (!data) return <div><Topbar title="Detail Analisis" /><p className="p-6 text-sm text-gray-500">Memuat...</p></div>;
-
-  function agreementLabel(agreement: string | null | undefined) {
-    if (agreement === "agree") return "Divalidasi AI (sejalan)";
-    if (agreement === "close") return "Divalidasi AI (mendekati)";
-    if (agreement === "disagree") return "Divalidasi AI (berbeda, perlu ditinjau)";
-    return "Rule-based";
-  }
 
   function handleExportPdf() {
     const doc = new jsPDF();
@@ -72,10 +69,10 @@ export default function HistoryDetailPage() {
     line("Nama Training", data.trainingTitle || data.document?.originalName || "-");
     line("Tanggal Analisis", new Date(data.createdAt).toLocaleString("id-ID"));
     line("Level KKNI", `Level ${data.recommendedLevel ?? "-"}`);
-    line("Confidence", `${data.confidence ?? "-"}%`);
+    line("Sumber Dokumen", data.documentSource || "-");
     line("Status", data.status || "-");
     line("Bloom Dominan", data.dominantBloom || "Tidak ditemukan");
-    line("Validasi AI", data.aiUsed ? agreementLabel(data.aiAgreement) : "Tidak diaktifkan");
+    line("Ditentukan Oleh", data.aiUsed ? "AI (dokumen Non-BNSP)" : "Rule-based");
     y += 4;
     line("", "Justifikasi:", true);
     line("", data.justification || "Tidak ditemukan");
@@ -117,7 +114,7 @@ export default function HistoryDetailPage() {
             <>
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <p className="text-3xl font-semibold text-primary">Level {data.recommendedLevel ?? "-"}</p>
-                <Badge>{data.aiUsed ? agreementLabel(data.aiAgreement) : "Rule-based (AI tidak aktif)"}</Badge>
+                <Badge>{data.documentSource === "BNSP" ? "BNSP (Rule-based)" : data.aiUsed ? "Non-BNSP (AI)" : "Non-BNSP (Rule-based)"}</Badge>
                 <Badge tone={data.status === "Completed" ? "success" : data.status === "Failed" ? "danger" : "warning"}>
                   {data.status}
                 </Badge>
@@ -138,18 +135,9 @@ export default function HistoryDetailPage() {
                   className="border border-border rounded-md px-3 py-2 text-sm w-32"
                 />
               </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">Status</label>
-                <select
-                  value={form.status}
-                  onChange={(e) => setForm({ ...form, status: e.target.value })}
-                  className="border border-border rounded-md px-3 py-2 text-sm"
-                >
-                  <option>Completed</option>
-                  <option>Needs Manual Review</option>
-                  <option>Failed</option>
-                </select>
-              </div>
+              <p className="text-xs text-gray-500 bg-[#F5F4FC] rounded-md px-3 py-2">
+                Status otomatis berubah menjadi <span className="font-medium">Completed</span> setelah koreksi ini disimpan.
+              </p>
               <div>
                 <label className="text-sm font-medium block mb-1">Justifikasi</label>
                 <textarea

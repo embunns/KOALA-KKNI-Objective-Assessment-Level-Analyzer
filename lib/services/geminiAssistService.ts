@@ -1,3 +1,28 @@
+/**
+ * geminiAssistService
+ * ---------------------------------------------------------------------------
+ * Menyediakan dua bantuan AI yang PERANNYA DIBATASI KETAT sesuai aturan bisnis:
+ *
+ * 1. extractTitleWithAi()
+ *    Mengekstrak judul training dari isi dokumen menggunakan AI (lebih andal
+ *    dibanding regex heading saja untuk dokumen yang formatnya tidak baku).
+ *    Judul ini HANYA dipakai sebagai label tampilan -- TIDAK PERNAH dikirim
+ *    balik ke proses penentuan level, sesuai aturan "AI tidak boleh
+ *    menentukan level hanya dari nama training".
+ *
+ * 2. assessLevelWithAi()
+ *    Meminta penilaian Level KKNI secara independen dari AI, berdasarkan isi
+ *    dokumen (bukan nama training). Hasil ini TIDAK menggantikan hasil
+ *    rule-based -- hanya dipakai sebagai pembanding untuk menyesuaikan
+ *    confidence akhir (lihat analysisOrchestrator.ts, pola "AI sebagai
+ *    validator", bukan "AI sebagai penentu").
+ *
+ * Kedua fungsi memanggil Gemini API dalam SATU request saja per dokumen untuk
+ * menghemat kuota free-tier. Jika GEMINI_API_KEY tidak diisi atau panggilan
+ * gagal, keduanya mengembalikan null -- sistem tetap berjalan normal dengan
+ * rule-based saja (tidak ada dependency wajib ke AI).
+ */
+
 import { DocumentSections } from "./sectionDetectionService";
 import { DetectedKko } from "./kkoDetectionService";
 import { KkniLevelRef } from "./kkniScoringService";
@@ -12,7 +37,6 @@ export interface GeminiAssistResult {
 const GEMINI_MODEL = "gemini-flash-latest";
 
 export async function assistWithGemini(
-    
   cleanedText: string,
   sections: DocumentSections,
   detectedKko: DetectedKko[],
@@ -58,25 +82,45 @@ Format jawaban JSON:
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.2, responseMimeType: "application/json" },
+          generationConfig: {
+            temperature: 0.2,
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: "OBJECT",
+              properties: {
+                title: { type: "STRING", nullable: true },
+                assessedLevel: { type: "INTEGER" },
+                assessedConfidence: { type: "NUMBER" },
+                reasoning: { type: "STRING" },
+              },
+              required: ["assessedLevel", "assessedConfidence", "reasoning"],
+            },
+          },
         }),
       }
     );
 
     if (!response.ok) {
-      console.error("Gemini API error:", response.status, await response.text());
+      const errText = await response.text().catch(() => "");
+      console.error("[geminiAssistService] Gemini API error:", response.status, errText);
       return null;
     }
 
     const data = await response.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text) {
-      console.error("Gemini response kosong / format tidak sesuai:", JSON.stringify(data));
+      console.error("[geminiAssistService] Respons Gemini tidak ada teksnya:", JSON.stringify(data));
       return null;
     }
 
     const cleaned = text.replace(/```json|```/g, "").trim();
-    const parsed = JSON.parse(cleaned);
+    let parsed: any;
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch (parseErr) {
+      console.error("[geminiAssistService] Respons Gemini bukan JSON valid:", cleaned);
+      return null;
+    }
 
     const level = Number(parsed.assessedLevel);
     return {
@@ -86,7 +130,7 @@ Format jawaban JSON:
       reasoning: String(parsed.reasoning || ""),
     };
   } catch (err) {
-    console.error("Gemini call failed:", err);
+    console.error("[geminiAssistService] Gagal memanggil Gemini API:", err);
     return null;
   }
 }

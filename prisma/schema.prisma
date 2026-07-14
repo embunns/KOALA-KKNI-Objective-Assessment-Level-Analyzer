@@ -47,9 +47,9 @@ model AnalysisHistory {
   aspectScores     Json?
   reasoning        String?
   justification    String?
-  status           String   @default("Processing") // Processing | Completed | Failed | Needs Manual Review
+  status           String   @default("Processing")
   aiUsed           Boolean  @default(false)
-  aiAgreement      String?  // "agree" | "close" | "disagree" | null
+  documentSource   String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
@@ -67,8 +67,8 @@ model KKNILevel {
 
 model BloomCategory {
   id        String   @id @default(uuid())
-  category  String   // Cognitive | Affective | Psychomotor
-  code      String   @unique // C1..C6, A1..A5, P1..P5
+  category  String
+  code      String   @unique
   name      String
   kkos      KKO[]
   createdAt DateTime @default(now())

@@ -90,10 +90,10 @@ export default function AnalysisPage() {
     addLabel("Nama Training", result.trainingTitle || "Tidak ditemukan");
     addLabel("Tanggal Analisis", new Date().toLocaleString("id-ID"));
     addLabel("Level KKNI", `Level ${result.recommendedLevel ?? "-"}`);
-    addLabel("Confidence", `${result.confidence ?? "-"}%`);
+    addLabel("Sumber Dokumen", result.documentSource || "-");
     addLabel("Status", result.status || "-");
     addLabel("Bloom Dominan", result.dominantBloom || "Tidak ditemukan");
-    addLabel("Validasi AI", result.aiUsed ? agreementLabel(result.aiAgreement) : "Tidak diaktifkan");
+    addLabel("Ditentukan Oleh", result.aiUsed ? "AI (dokumen Non-BNSP)" : "Rule-based");
     y += 4;
 
     ensureSpace(20);
@@ -111,13 +111,6 @@ export default function AnalysisPage() {
     }
 
     doc.save(`analisis-${slugify(result.trainingTitle || "dokumen")}.pdf`);
-  }
-
-  function agreementLabel(agreement: string | null | undefined) {
-    if (agreement === "agree") return "Divalidasi AI (sejalan)";
-    if (agreement === "close") return "Divalidasi AI (mendekati)";
-    if (agreement === "disagree") return "Divalidasi AI (berbeda, perlu ditinjau)";
-    return "Rule-based";
   }
 
   function slugify(text: string) {
@@ -195,7 +188,7 @@ export default function AnalysisPage() {
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm text-gray-500">Level KKNI</p>
                 <div className="flex items-center gap-2">
-                  <Badge>{result.aiUsed ? agreementLabel(result.aiAgreement) : "Rule-based (AI tidak aktif)"}</Badge>
+                  <Badge>{result.documentSource === "BNSP" ? "BNSP (Rule-based)" : result.aiUsed ? "Non-BNSP (AI)" : "Non-BNSP (Rule-based, AI gagal)"}</Badge>
                   <Badge tone={result.status === "Needs Manual Review" ? "warning" : "success"}>{result.status}</Badge>
                 </div>
               </div>
