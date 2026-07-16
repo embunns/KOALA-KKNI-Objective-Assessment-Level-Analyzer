@@ -17,7 +17,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 export async function PUT(req: NextRequest, { params }: Params) {
   const { id } = await params;
   const body = await req.json();
-  const allowed = ["recommendedLevel", "status", "justification"];
+  const allowed = ["recommendedLevel", "status", "justification", "confidence", "manuallyEdited"];
   const data: Record<string, unknown> = {};
   for (const key of allowed) {
     if (key in body) data[key] = body[key];

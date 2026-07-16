@@ -50,6 +50,7 @@ model AnalysisHistory {
   status           String   @default("Processing")
   aiUsed           Boolean  @default(false)
   documentSource   String?
+  manuallyEdited   Boolean  @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }

@@ -32,10 +32,12 @@ export default function HistoryDetailPage() {
 
   async function handleSave() {
     setSaving(true);
-    // Begitu Admin menyimpan koreksi manual, status otomatis dianggap "Completed"
-    // -- artinya dokumen ini sudah ditinjau manusia, jadi peringatan "Needs Manual
-    // Review" tidak relevan lagi ditampilkan.
-    const payload = { ...form, status: "Completed" };
+    // Begitu Admin menyimpan koreksi manual, status otomatis "Completed" dan
+    // confidence diset 100% -- karena confidence yang lama mewakili keyakinan
+    // sistem (rule-based/AI), sedangkan keputusan sekarang sudah final dari
+    // manusia. Field manuallyEdited dipakai untuk membedakan tampilannya di UI
+    // supaya tidak disalahartikan seolah sistem sendiri yang sangat yakin.
+    const payload = { ...form, status: "Completed", confidence: 100, manuallyEdited: true };
     const res = await fetch(`/api/history/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -114,13 +116,18 @@ export default function HistoryDetailPage() {
             <>
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <p className="text-3xl font-semibold text-primary">Level {data.recommendedLevel ?? "-"}</p>
-                <Badge>{data.documentSource === "BNSP" ? "BNSP (Rule-based)" : data.aiUsed ? "Non-BNSP (AI)" : "Non-BNSP (Rule-based)"}</Badge>
+                {data.manuallyEdited ? (
+                  <Badge tone="success">Dikoreksi Manual oleh Admin</Badge>
+                ) : (
+                  <Badge>{data.documentSource === "BNSP" ? "BNSP (Rule-based)" : data.aiUsed ? "Non-BNSP (AI)" : "Non-BNSP (Rule-based)"}</Badge>
+                )}
                 <Badge tone={data.status === "Completed" ? "success" : data.status === "Failed" ? "danger" : "warning"}>
                   {data.status}
                 </Badge>
               </div>
               <p className="text-sm text-gray-500 mb-1">
                 Confidence: {data.confidence ?? "-"}% {data.confidence != null && `(${confidenceLabel(data.confidence)})`}
+                {data.manuallyEdited && <span className="text-gray-400"> — ditetapkan manual, bukan hasil perhitungan sistem</span>}
               </p>
               {data.confidence != null && <ProgressBar value={data.confidence} />}
             </>

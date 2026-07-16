@@ -69,7 +69,9 @@ export default function HistoryPage() {
                     <td className="py-2 px-3">{new Date(a.createdAt).toLocaleDateString("id-ID")}</td>
                     <td className="py-2 px-3">{a.trainingTitle || a.document?.originalName}</td>
                     <td className="py-2 px-3">{a.recommendedLevel ?? "-"}</td>
-                    <td className="py-2 px-3">{a.confidence ?? "-"}%</td>
+                    <td className="py-2 px-3">
+                      {a.confidence ?? "-"}%{a.manuallyEdited && <span className="text-gray-400 text-xs"> (manual)</span>}
+                    </td>
                     <td className="py-2 px-3">
                       <Badge tone={a.status === "Completed" ? "success" : a.status === "Failed" ? "danger" : "warning"}>
                         {a.status}
